@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'dart:convert'; // Import for base64Encode and base64Decode
+import 'dart:io'; // Import for File
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -30,7 +31,7 @@ class UploadProfileImageScreen extends StatefulWidget {
 
 class _UploadProfileImageScreenState extends State<UploadProfileImageScreen> {
   bool _isLoading = false;
-  List<File> _selectedImages = [];
+  List<String> _selectedImages = [];
 
   Future<void> _getImages() async {
     final ImagePicker _picker = ImagePicker();
@@ -38,17 +39,26 @@ class _UploadProfileImageScreenState extends State<UploadProfileImageScreen> {
       final List<XFile>? images = await _picker.pickMultiImage();
       if (images != null) {
         setState(() {
-          _selectedImages = images.map((image) => File(image.path)).toList();
+          _isLoading = true;
+        });
+        _selectedImages = await Future.wait(images.map((image) async {
+          List<int> imageBytes = await File(image.path).readAsBytes();
+          return base64Encode(imageBytes);
+        }));
+
+        setState(() {
+          _isLoading = false;
         });
       }
     } catch (e) {
-      print('Error picking images: $e');
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -94,12 +104,11 @@ class _UploadProfileImageScreenState extends State<UploadProfileImageScreen> {
                   child: Image.asset("assets/images/camera.on.rectangle.fill.png"),
                 )
                     : Stack(
-                  children: _selectedImages.map((image) {
+                  children: _selectedImages.map((base64Image) {
                     return Positioned(
-                      // This will position the images one on top of the other
                       child: ClipOval(
-                        child: Image.file(
-                          image,
+                        child: Image.memory(
+                          base64Decode(base64Image),
                           fit: BoxFit.cover,
                           width: 300, // Adjust as necessary
                           height: 300, // Adjust as necessary
@@ -154,8 +163,8 @@ class _UploadProfileImageScreenState extends State<UploadProfileImageScreen> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(15),
                             ),
-                            child: Image.file(
-                              _selectedImages[index],
+                            child: Image.memory(
+                              base64Decode(_selectedImages[index]),
                               fit: BoxFit.cover,
                             ),
                           ),

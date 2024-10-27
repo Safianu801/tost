@@ -89,51 +89,71 @@ class AuthenticationService with ChangeNotifier {
     }
   }
 
-  Future<void> createProfile(
-      BuildContext context, Map<String, dynamic> data, String userId,
-      {List<File>? image}) async {
+  Future<void> createProfile({
+    required BuildContext context,
+    required String gender,
+    required String dob,
+    required String hobbies,
+    required String bio,
+    required String range,
+    required String longitude,
+    required String latitude,
+    required String userID,
+    List<String>? base64Images,
+  }) async {
     try {
-      final Uri url = Uri.parse("$baseUrl/profile/$userId");
+      final uri = Uri.parse("$baseUrl/profile/$userID");
+      final request = http.MultipartRequest('PUT', uri)
+        ..headers[HttpHeaders.contentTypeHeader] = 'application/json'
+        ..fields['gender'] = gender
+        ..fields['dob'] = dob
+        ..fields['hobbies'] = hobbies
+        ..fields['bio'] = bio
+        ..fields['range'] = range
+        ..fields['longitude'] = longitude
+        ..fields['latitude'] = latitude;
 
-      // Check if images are provided
-      if (image != null && image.isNotEmpty) {
-        List<String> base64UserPhotos = [];
-        for (File userPhotos in image) {
-          // Read image bytes and convert to base64
-          List<int> userPhotosBytes = await userPhotos.readAsBytes();
-          String base64UserImage = base64Encode(userPhotosBytes);
-          base64UserPhotos.add(base64UserImage);
+      if (base64Images != null && base64Images.isNotEmpty) {
+        for (var base64Image in base64Images) {
+          // Decode the base64 string
+          final bytes = base64Decode(base64Image);
+          final fileName = "image_${DateTime.now().millisecondsSinceEpoch}.jpg";
+          final stream = http.ByteStream.fromBytes(bytes);
+          final length = bytes.length;
+
+          final multipartFile = http.MultipartFile(
+            'photos',
+            stream,
+            length,
+            filename: fileName,
+          );
+          request.files.add(multipartFile);
         }
-        // Add base64 images to the data map
-        data['photos'] = base64UserPhotos;
       }
 
-      // Make the POST request
-      final response = await http.post(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: jsonEncode(data),
-      );
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      print("response body one: $responseBody");
+      final statusCode = response.statusCode;
+      final jsonResponse = json.decode(responseBody);
+      print("response body two: $jsonResponse");
 
-      // Handle the response
-      print(response.body);
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Profile Created")));
-        // You can navigate to another screen if needed
-        // Navigator.of(context).push(MaterialPageRoute(builder: (context) => const AccessNotification()));
+      if (statusCode == 201 || statusCode == 200) {
+        print("Success: $jsonResponse");
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Unable to create profile")));
+        print("Error: $jsonResponse");
       }
     } catch (error) {
       print('Error creating profile: $error');
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("An error occurred while creating the profile")));
+        SnackBar(content: Text("An error occurred while creating the profile: $error")),
+      );
+      print(error);
     }
   }
+
+
+
 
   Future<void> getOTP(BuildContext context) async {
     try {

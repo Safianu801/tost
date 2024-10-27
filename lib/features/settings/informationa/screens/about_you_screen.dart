@@ -14,7 +14,7 @@ class AboutYouScreen extends StatefulWidget {
   final String userAge;
   final List<String> hobbies;
   final String locationRange;
-  final List<File>? selectedImages;
+  final List<String>? selectedImages;
   final String latitude;
   final String longitude;
 
@@ -39,41 +39,27 @@ class _AboutYouScreenState extends State<AboutYouScreen> {
 
   final AuthenticationService _authenticationService = AuthenticationService();
 
-  Future<void> _createProfile(BuildContext context, String userBio, String userID) async {
+  Future<void> _createProfile(
+      BuildContext context, String userBio, String userID) async {
     setState(() {
       _isLoading = true;
     });
-
     try {
-      Map<String, dynamic> data = {
-        "gender": widget.userGender,
-        "dob": widget.userAge,
-        "hobbies": widget.hobbies.join(","),
-        "bio": userBio,
-        "range": widget.locationRange,
-        "longitude": widget.longitude,
-        "latitude": widget.latitude,
-      };
-
-      if (widget.selectedImages != null && widget.selectedImages!.isNotEmpty) {
-        List<String> base64UserPhotos = [];
-        for (File image in widget.selectedImages!) {
-          List<int> imageBytes = await image.readAsBytes();
-          String base64Image = base64Encode(imageBytes);
-          base64UserPhotos.add(base64Image);
-        }
-        data['photos'] = base64UserPhotos;
-      }
-      await _authenticationService.createProfile(context, data, userID, image: widget.selectedImages);
+      await _authenticationService.createProfile(
+          context: context,
+          gender: widget.userGender,
+          dob: widget.userAge,
+          hobbies: widget.hobbies.join(","),
+          bio: userBio,
+          range: widget.locationRange,
+          longitude: widget.longitude,
+          latitude: widget.latitude,
+          userID: userID,
+          base64Images: widget.selectedImages);
 
       setState(() {
         _isLoading = false;
       });
-
-      // Show a success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Profile Created Successfully")),
-      );
     } catch (err) {
       setState(() {
         _isLoading = false;
@@ -115,13 +101,18 @@ class _AboutYouScreenState extends State<AboutYouScreen> {
                   ),
                 ),
                 const SizedBox(height: 50),
-                LargeTextSpace(hintText: "About You", obscureText: false, controller: aboutYouController),
+                LargeTextSpace(
+                    hintText: "About You",
+                    obscureText: false,
+                    controller: aboutYouController),
                 const SizedBox(height: 55),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width / 8.0),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: MediaQuery.of(context).size.width / 8.0),
                   child: CustomButtonOne(
                     title: "SAVE",
-                    onPress: () => _createProfile(context, aboutYouController.text.trim(), user.id),
+                    onPress: () => _createProfile(
+                        context, aboutYouController.text.trim(), user.id),
                   ),
                 ),
               ],
