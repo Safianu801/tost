@@ -2,8 +2,6 @@ import 'dart:io';
 import 'dart:convert'; // Ensure you import the jsonEncode and base64Encode functions.
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-import '../../../../models/user_model.dart';
 import '../../../../services/authentication_service.dart';
 import '../../../../services/user_provider.dart';
 import '../../../../utilities/custom_back_navigator.dart';
