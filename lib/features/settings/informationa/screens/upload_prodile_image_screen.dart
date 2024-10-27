@@ -48,6 +48,7 @@ class _UploadProfileImageScreenState extends State<UploadProfileImageScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
