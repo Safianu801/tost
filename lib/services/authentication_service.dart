@@ -103,7 +103,7 @@ class AuthenticationService with ChangeNotifier {
     try {
       final uri = Uri.parse("$baseUrl/profile/$userID");
       final request = http.MultipartRequest('PUT', uri)
-        ..headers[HttpHeaders.contentTypeHeader] = 'multipart/form-data'
+        ..headers['Content-Type'] = 'multipart/form-data'
         ..fields['gender'] = gender
         ..fields['dob'] = dob
         ..fields['hobbies'] = hobbies
@@ -121,7 +121,7 @@ class AuthenticationService with ChangeNotifier {
           final length = bytes.length;
 
           final multipartFile = http.MultipartFile(
-            'gallery',
+            'photos',
             stream,
             length,
             filename: fileName,
