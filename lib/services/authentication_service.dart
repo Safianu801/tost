@@ -98,7 +98,7 @@ class AuthenticationService with ChangeNotifier {
     required String longitude,
     required String latitude,
     required String userID,
-    List<String>? base64Images,
+    List<String>? images,
   }) async {
     try {
       final uri = Uri.parse("$baseUrl/profile/$userID");
@@ -112,32 +112,35 @@ class AuthenticationService with ChangeNotifier {
         ..fields['longitude'] = longitude
         ..fields['latitude'] = latitude;
 
-      
-      if (base64Images != null && base64Images.isNotEmpty) {
-        for (var base64Image in base64Images) {
-          final bytes = base64Decode(base64Image);
-          final fileName = "image_${DateTime.now().millisecondsSinceEpoch}.jpg";
-          final stream = http.ByteStream.fromBytes(bytes);
-          final length = bytes.length;
-
-          final multipartFile = http.MultipartFile(
-            'photos',
-            stream,
-            length,
-            filename: fileName,
+      if (images != null) {
+        for (var image in images) {
+          final multipartFile = await http.MultipartFile.fromPath(
+            'photos', 
+            image,
           );
           request.files.add(multipartFile);
         }
       }
+
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
       final statusCode = response.statusCode;
+
       final jsonResponse = json.decode(responseBody);
 
       if (statusCode == 201 || statusCode == 200) {
         print("Success: $jsonResponse");
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Profile created successfully!")),
+        );
       } else {
         print("Error: $jsonResponse");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text("Error creating profile: ${jsonResponse['message']}")),
+        );
       }
     } catch (error) {
       print('Error creating profile: $error');

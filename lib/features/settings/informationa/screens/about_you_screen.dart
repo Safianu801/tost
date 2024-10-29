@@ -55,7 +55,7 @@ class _AboutYouScreenState extends State<AboutYouScreen> {
           longitude: widget.longitude,
           latitude: widget.latitude,
           userID: userID,
-          base64Images: widget.selectedImages);
+          images: widget.selectedImages);
 
       setState(() {
         _isLoading = false;
