@@ -57,7 +57,6 @@ class AuthenticationService with ChangeNotifier {
     }
   }
 
-
   //login
   Future<void> userLogin(
       BuildContext context, String email, String password) async {
@@ -113,16 +112,16 @@ class AuthenticationService with ChangeNotifier {
         ..fields['longitude'] = longitude
         ..fields['latitude'] = latitude;
 
+      
       if (base64Images != null && base64Images.isNotEmpty) {
         for (var base64Image in base64Images) {
-          // Decode the base64 string
           final bytes = base64Decode(base64Image);
           final fileName = "image_${DateTime.now().millisecondsSinceEpoch}.jpg";
           final stream = http.ByteStream.fromBytes(bytes);
           final length = bytes.length;
 
           final multipartFile = http.MultipartFile(
-            'photos',
+            'gallery',
             stream,
             length,
             filename: fileName,
@@ -130,13 +129,10 @@ class AuthenticationService with ChangeNotifier {
           request.files.add(multipartFile);
         }
       }
-
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
-      print("response body one: $responseBody");
       final statusCode = response.statusCode;
       final jsonResponse = json.decode(responseBody);
-      print("response body two: $jsonResponse");
 
       if (statusCode == 201 || statusCode == 200) {
         print("Success: $jsonResponse");
@@ -146,14 +142,12 @@ class AuthenticationService with ChangeNotifier {
     } catch (error) {
       print('Error creating profile: $error');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("An error occurred while creating the profile: $error")),
+        SnackBar(
+            content:
+                Text("An error occurred while creating the profile: $error")),
       );
-      print(error);
     }
   }
-
-
-
 
   Future<void> getOTP(BuildContext context) async {
     try {

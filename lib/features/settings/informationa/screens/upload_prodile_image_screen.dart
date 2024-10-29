@@ -1,5 +1,5 @@
-import 'dart:convert'; // Import for base64Encode and base64Decode
-import 'dart:io'; // Import for File
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -26,7 +26,8 @@ class UploadProfileImageScreen extends StatefulWidget {
   });
 
   @override
-  State<UploadProfileImageScreen> createState() => _UploadProfileImageScreenState();
+  State<UploadProfileImageScreen> createState() =>
+      _UploadProfileImageScreenState();
 }
 
 class _UploadProfileImageScreenState extends State<UploadProfileImageScreen> {
@@ -36,24 +37,25 @@ class _UploadProfileImageScreenState extends State<UploadProfileImageScreen> {
   Future<void> _getImages() async {
     final ImagePicker _picker = ImagePicker();
     try {
+      setState(() => _isLoading = true); // Show loading indicator
       final List<XFile>? images = await _picker.pickMultiImage();
-      if (images != null) {
-        setState(() {
-          _isLoading = true;
-        });
-        _selectedImages = await Future.wait(images.map((image) async {
+      if (images != null && images.isNotEmpty) {
+        // Convert images to base64
+        List<String> base64Images = await Future.wait(images.map((image) async {
           List<int> imageBytes = await File(image.path).readAsBytes();
           return base64Encode(imageBytes);
         }));
 
         setState(() {
+          _selectedImages.addAll(base64Images);
           _isLoading = false;
         });
+      } else {
+        setState(() => _isLoading = false); // Turn off loading if no images
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
+      debugPrint("Error picking images: $e"); // Debug error message
     }
   }
 
@@ -101,31 +103,26 @@ class _UploadProfileImageScreenState extends State<UploadProfileImageScreen> {
                 ),
                 child: _selectedImages.isEmpty
                     ? Center(
-                  child: Image.asset("assets/images/camera.on.rectangle.fill.png"),
-                )
-                    : Stack(
-                  children: _selectedImages.map((base64Image) {
-                    return Positioned(
-                      child: ClipOval(
+                        child: Image.asset(
+                            "assets/images/camera.on.rectangle.fill.png"),
+                      )
+                    : ClipOval(
                         child: Image.memory(
-                          base64Decode(base64Image),
+                          base64Decode(_selectedImages.last),
                           fit: BoxFit.cover,
-                          width: 300, // Adjust as necessary
-                          height: 300, // Adjust as necessary
+                          width: 300,
+                          height: 300,
                         ),
                       ),
-                    );
-                  }).toList(),
-                ),
               ),
             ),
             const SizedBox(height: 10),
             _selectedImages.isEmpty
                 ? const SizedBox.shrink()
                 : CustomButtonOne(
-              title: "Add More",
-              onPress: _getImages,
-            ),
+                    title: "Add More",
+                    onPress: _getImages,
+                  ),
             const SizedBox(height: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,9 +134,9 @@ class _UploadProfileImageScreenState extends State<UploadProfileImageScreen> {
                 _selectedImages.isEmpty
                     ? const SizedBox.shrink()
                     : const Text(
-                  "(long press on the image to remove it)",
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
+                        "(long press on the image to remove it)",
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
                 const SizedBox(height: 10),
                 SizedBox(
                   height: _selectedImages.isEmpty ? 0 : 100,
@@ -177,7 +174,8 @@ class _UploadProfileImageScreenState extends State<UploadProfileImageScreen> {
             ),
             const SizedBox(height: 55),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width / 8.0),
+              padding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width / 8.0),
               child: CustomButtonOne(
                 title: "Upload",
                 onPress: () {
@@ -195,7 +193,9 @@ class _UploadProfileImageScreenState extends State<UploadProfileImageScreen> {
                     ));
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Upload at least one image of yourself")),
+                      const SnackBar(
+                          content:
+                              Text("Upload at least one image of yourself")),
                     );
                   }
                 },

@@ -37,7 +37,7 @@ class _AboutYouScreenState extends State<AboutYouScreen> {
   final aboutYouController = TextEditingController();
   bool _isLoading = false;
 
-  final AuthenticationService _authenticationService = AuthenticationService();
+  final _authenticationService = AuthenticationService();
 
   Future<void> _createProfile(
       BuildContext context, String userBio, String userID) async {
