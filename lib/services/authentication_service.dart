@@ -103,7 +103,7 @@ class AuthenticationService with ChangeNotifier {
     try {
       final uri = Uri.parse("$baseUrl/profile/$userID");
       final request = http.MultipartRequest('PUT', uri)
-        ..headers[HttpHeaders.contentTypeHeader] = 'application/json'
+        ..headers[HttpHeaders.contentTypeHeader] = 'multipart/form-data'
         ..fields['gender'] = gender
         ..fields['dob'] = dob
         ..fields['hobbies'] = hobbies
